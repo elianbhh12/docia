@@ -324,3 +324,7 @@ def validate_api_response(response, response_data, logger, context):
             f"Response object message: {error_message}"
         )
     return is_valid, msg
+
+
+
+python lambda_function.py test\input\events\download 2>&1 | Tee-Object -FilePath errores.log
