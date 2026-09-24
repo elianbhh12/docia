@@ -1,0 +1,168 @@
+import json
+import logging
+from src.utils import request_utils
+import src.errors.lambda_error as errors
+from src.utils import event_utils, aws_utils
+from src.errors import lambda_error
+from src.classes.logs import Logs, RequestInfo, to_json, now_timestamp, update_logs
+
+
+def main(
+    log_buffer, event, context, logger: logging.Logger, busname, dynamo_control_table
+) -> bool:
+    """
+    Main function of lambda.
+
+    Get the event data
+    Write on BDTL API
+    Send notification if error
+
+    Returns "SUCCESS" if writing in BDTL process is done.
+
+    :param start_timestamp: Timestamp start time of the lambda
+    :param event: Dict with the event of the lambda
+    :param context: Context of the lambda
+    :param logger: Logger to show messages
+    :param sns_arn: String SNS error arn for notification in case of errors
+    :return: Dict w/ the response of the Lambda (SUCCESS o FAIL)
+    """
+
+    lambda_logs = Logs(start_timestamp=now_timestamp())
+    source = "custom.InsertBdtlLambda"
+
+    try:
+        record = event
+
+        config_test = """{"bdtl_api_key": "bdtl-api-key","bdtl_api_url": "http://httpbin.org/status/500"}"""
+        api_config = (
+            json.loads(config_test)
+            if event and event.get("type", "") == "manual_test"
+            else get_configurations()
+        )
+
+        bucket, object_key, file_name, ext = event_utils.get_event_data(record, logger)
+
+        if bucket:
+            message_raw = aws_utils.download_message(bucket, object_key, ext, logger)
+            message = str(message_raw)
+            if "status" in message_raw:
+                lambda_logs = update_logs(
+                    lambda_logs,
+                    request_info=None,
+                    response=None,
+                    call_timestamp=None,
+                    response_timestamp=None,
+                    end_timestamp=now_timestamp(),
+                )
+                event_data = message_raw.get("data")
+
+                message = event_data
+
+                (
+                    call_api_status,
+                    request_info,
+                    call_timestamp,
+                    response_bdtl,
+                    response_timestamp,
+                    msg,
+                ) = request_utils.write_api(
+                    api_config, event_data, logger, dynamo_control_table
+                )
+
+                logger.info(f"CALL BDTL API STATUS: {call_api_status}")
+                message = str(call_api_status)
+                request_info = str(request_info)
+
+                end_timestamp = now_timestamp()
+                lambda_logs = update_logs(
+                    lambda_logs,
+                    request_info=request_info,
+                    response=response_bdtl,
+                    call_timestamp=call_timestamp,
+                    response_timestamp=response_timestamp,
+                    end_timestamp=end_timestamp,
+                )
+
+                if message == "FAILED":
+                    raise errors.BDTLApiCallException(
+                        "BDTL Api Call Exception: status response " + msg
+                    )
+            else:
+                lambda_logs = update_logs(
+                    lambda_logs,
+                    request_info=None,
+                    response=None,
+                    call_timestamp=None,
+                    response_timestamp=None,
+                    end_timestamp=now_timestamp(),
+                )
+
+        else:
+            lambda_logs = update_logs(
+                lambda_logs,
+                request_info=None,
+                response=None,
+                call_timestamp=None,
+                response_timestamp=None,
+                end_timestamp=now_timestamp(),
+            )
+
+        lambda_logs = update_logs(lambda_logs, message=message)
+        json_logs = to_json(lambda_logs)
+        bus_name = busname
+
+        msg = {
+            "FileName": str(file_name),
+            "LambdaName": "InsertBdtlLambda",
+            "Logs": json_logs,
+        }
+        logger.info(f"Message to send to LogsLambda: {msg}")
+        logs_response = aws_utils.send_custom_event(
+            bus_name, source, "LogsLambda", msg, logger
+        )
+        logger.info(f"Logs send to be save in dynamo table, code: {logs_response}")
+        return True
+
+    except (
+        lambda_error.EventError,
+        lambda_error.RetrievingError,
+        lambda_error.BDTLGenerateBodyException,
+        lambda_error.DynamoDBReadCatalogError,
+        lambda_error.DynamoDBReadError,
+        lambda_error.BadFormedEventException,
+        lambda_error.DatesMessageError,
+        lambda_error.S3Error,
+        lambda_error.BDTLApiCallException,
+        lambda_error.WriteApiException,
+        lambda_error.SendingMessageError,
+    ) as e:
+        logger.error(f"Se genero error\n {e} en la ejecucion")
+        message = f"Se genero error\n {e}\n en la ejecucion"
+
+        lambda_logs = update_logs(lambda_logs, message=message)
+        json_logs = to_json(lambda_logs)
+        bus_name = busname
+        # print(f"el mensaje de error es: {message}")
+
+        msg = {
+            "FileName": str(file_name),
+            "LambdaName": "InsertBdtlLambda",
+            "Logs": json_logs,
+        }
+        logger.error(f"Message to send to LogsLambda: {msg}")
+        logs_response = aws_utils.send_custom_event(
+            bus_name, source, "LogsLambda", msg, logger
+        )
+        logger.info(f"Logs send to be save in dynamo table, code: {logs_response}")
+
+        raise e
+
+
+def get_configurations():
+    """
+    Load JSON with configurations.
+
+    :return: List with configuration
+    """
+    with open("config/config.json", "r", encoding="utf-8") as config_file:
+        return json.load(config_file)
