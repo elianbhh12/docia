@@ -1,0 +1,326 @@
+import json
+import logging
+import os
+import uuid
+import requests
+import urllib3
+from requests.adapters import HTTPAdapter
+from urllib3 import Retry
+from typing import Optional, Union, Tuple
+from src.utils.dict_string_utils import (
+    generate_request_body,
+    get_catalog,
+    get_information_document,
+    delete_extraction_fields_level,
+)
+from src.utils.json_normalize_utils import homologate_segmentation
+from src.utils.json_object_utils import write_api_classification
+import src.errors.lambda_error as errors
+from src.classes.json_encoder import JSONEncoder
+from src.classes.logs import Logs, now_timestamp, update_logs
+
+
+def request_retry_session(
+    session: Optional[requests.Session] = None,
+    retries: int = 3,
+    backoff_factor: float = 1,
+    status_to_retry: Tuple[int, ...] = (402, 405, 500, 502, 503, 504),
+    allowed_methods: Union[bool, Tuple[str, ...]] = (
+        "DELETE",
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "PUT",
+        "TRACE",
+        "POST",
+    ),
+    prefixes: Tuple[str, ...] = ("https://"),
+    log_level: int = logging.WARNING,
+    **kwargs,
+) -> requests.Session:
+    """
+    Configures the passed-in session to retry on failed requests due to
+    connection errors, specific HTTP response codes and 30X redirections.
+
+    Args:
+        session: A session to allow to retry. None creates a new Session.
+        retries: The number of maximum retries before raising an
+                 exception.
+        backoff_factor: A factor used to compute the waiting time
+                        between retries.
+                        See :arg:`urllib3.util.retry.Retry.backoff_factor`.
+        status_to_retry: A tuple of status codes that trigger the reply
+                         behaviour.
+        allowed_methods: Set of uppercased HTTP method verbs that we should retry on.
+                    idempotent (multiple requests with the same parameters end with the
+                    By default, we only retry on methods which are considered to be
+                    same state). See `Retry.DEFAULT_ALLOWED_METHODS`.
+
+                    Set to a ``False`` value to retry on any verb.
+        prefixes: A tuple of URL prefixes that this retry configuration
+                  affects. By default, ``https`` and ``https``.
+        **kwargs: Extra arguments that are passed to
+                  :class:`urllib3.util.retry.Retry`.
+                  Docs: https://urllib3.readthedocs.io/en/latest/reference/urllib3.util.html
+
+    Returns:
+        A session object with the retry setup.
+    """
+
+    session = session or requests.Session()
+    r = Retry(
+        total=retries,
+        status=retries,
+        read=retries,
+        connect=retries,
+        other=retries,
+        redirect=retries,
+        backoff_factor=backoff_factor,
+        status_forcelist=status_to_retry,
+        allowed_methods=allowed_methods,
+        **kwargs,
+    )
+    adapter = HTTPAdapter(max_retries=r)
+    for prefix in prefixes:
+        session.mount(prefix, adapter)
+    return session
+
+
+# Ruta del certificado publicado en el Lambda Layer. AWS monta los layers en
+# /opt, por lo que la ruta por defecto asume que el .zip del layer expone el
+# certificado en /opt/certs. Se puede sobreescribir con la variable de
+# entorno BDTL_CERT_PATH sin necesidad de modificar el código.
+BDTL_CERT_PATH = os.getenv("BDTL_CERT_PATH", "/opt/certs/opv-apis-dev.apps.ambientesbc.lab.cer")
+
+
+def write_api(config, result_record, logger, dynamo_control_table):
+    """
+    Calls BDTL Ingestor api with the processing results.
+
+    :param result_record: Dict of the result record obtained from event
+    :param logger: Logger to show messages
+    :param sns_error_arn: String SNS error arn for notification in case of
+    errors
+    :return: String SUCCESS, if the write api operation was successfull
+    """
+    try:
+        document_data_list = []
+        fields_json = get_information_document(result_record)
+        id_trx = fields_json.get("case_reference")
+        message_id = str(id_trx)
+        catalogo = get_catalog(
+            dynamo_control_table,
+            fields_json.get("process_id_docia"),
+            fields_json.get("document_type"),
+            logger,
+            fallback_document_type=fields_json.get("subTypeDocument"),
+        )
+
+        bodies, request_info, subtype_node, normalize_json = generate_request_body(
+            result_record, logger, dynamo_control_table, catalogo
+        )
+
+        if len(bodies) > 0:
+
+            if normalize_json:
+                for i in range(len(bodies)):
+                    bodies[i] = delete_extraction_fields_level(bodies[i])
+
+            if catalogo["homologate_seg"]:
+                extracted_metadata = bodies[0]["data"]["document"]["extractedMetadata"]
+                metadata_aux = json.loads(extracted_metadata["liquidData"])
+                extracted_metadata["liquidData"] = json.dumps(
+                    homologate_segmentation(metadata_aux, logger)
+                )
+
+            for body in bodies:
+
+                call_timestamp = now_timestamp()
+
+                # llamado api
+                #logger.info(
+                #    f"Json body: {json.dumps(body, cls=JSONEncoder)}"
+                #)
+                response = call_api(config, message_id, body)
+                response_timestamp = now_timestamp()
+                response_data = response.json()
+
+                is_valid, msg = validate_api_response(
+                    response, response_data, logger, context="BDTL"
+                )
+                if not is_valid:
+                    return (
+                        "FAILED",
+                        request_info,
+                        call_timestamp,
+                        response_data,
+                        response_timestamp,
+                        msg,
+                    )
+
+                store_metadata = response_data["data"]["storeMetadata"]
+                id_documento = store_metadata["documentId"]
+                fecha_busqueda = store_metadata["bdtlRecordDate"]
+                subtipo_asignado = body["data"]["document"][
+                    "additionalExtractedData"
+                ]["subtype"]
+                if id_documento:
+                    document_data = {
+                        "subTypeDocument": subtipo_asignado,
+                        "idBDTL": id_documento,
+                        "DateSearchBdtl": fecha_busqueda,
+                    }
+                document_data_list.append(document_data)
+        else:
+            msg_exception = """Body is empty or missing statement"""
+            logger.error("ERROR: " + msg_exception)
+            raise errors.BDTLGenerateBodyException(msg_exception)
+
+        # Segundo llamado si aplica clasificación
+        logger.info(
+            f"toClassification value: {catalogo.get('toClassification')} | document_type: "
+            f"{fields_json.get('document_type')} | subTypeDocument: {fields_json.get('subTypeDocument')} "
+            f"| subtype_node: {subtype_node}"
+        )
+        if bool(catalogo.get("toClassification")) is True:
+            try:
+                response_clasification = post_classification_if_needed(
+                    config=config,
+                    request_info=request_info,
+                    document_data_list=document_data_list,
+                    message_id=message_id,
+                    typeSub="Clasificacion",
+                    logger=logger,
+                )
+                logger.info(f"Clasification response: {response_clasification}")
+                request_info["storage"][
+                    "classification_response"
+                ] = response_clasification
+
+            except Exception as e:
+                error_msg = f"Clasification call failed: {str(e)}"
+                logger.error(error_msg)
+                request_info["classification_response"] = {
+                    "status": "FAILED",
+                    "error": error_msg,
+                }
+        # print("request info classification ", request_info)
+        return (
+            "SUCCESS",
+            request_info,
+            call_timestamp,
+            response_data,
+            response_timestamp,
+            msg,
+        )
+
+    except (
+        errors.BDTLGenerateBodyException,
+        errors.BDTLApiCallException,
+        requests.RequestException,
+        AttributeError,
+        requests.exceptions.RetryError,
+        urllib3.exceptions.MaxRetryError,
+    ) as e:
+        msg_exception = f"""Failed on [request_utils][write_api] Request BDTL Exception.
+        Error Details: {e}"""
+        logger.error(msg_exception)
+        raise errors.WriteApiException(msg_exception)
+
+
+def post_classification_if_needed(
+    config, request_info, document_data_list, message_id, typeSub, logger
+):
+    """
+    Performs a second call to the API if the catalog indicates classification is needed.
+    """
+    try:
+        logger.info("Classification enabled for this catalog entry.")
+        json_clasification = write_api_classification(
+            request_info, document_data_list, typeSub
+        )
+        
+        # llamado api
+        response_class = call_api(config, message_id, json_clasification)
+        response_class_data = response_class.json()
+        is_valid_class, msg_class = validate_api_response(
+            response_class, response_class_data, logger, context="BDTL"
+        )
+        if not is_valid_class:
+            logger.warning(msg_class)
+        return response_class_data
+    except errors.DynamoDBReadCatalogError as e:
+        logger.warning(
+            f"Classification check skipped due to catalog read error: {str(e)}"
+        )
+    except Exception as e:
+        logger.error(f"Unexpected error in classification post: {str(e)}")
+
+
+def call_api(config, message_id, json_body):
+
+    # BDTL exige que el header "message-id" sea un UUID de 36 caracteres
+    # (mismo formato/longitud que "_messageId" en la respuesta). case_reference
+    # no cumple ese formato, por lo que se genera un UUID nuevo por llamada;
+    # message_id (case_reference) se conserva solo para trazabilidad interna.
+    api_message_id = str(uuid.uuid4())
+
+    # headers for call api
+    headers = {
+        "message-id": api_message_id,
+        "Content-Type": "application/json",
+        "Client-Id": config["bdtl_client_id"],
+        "Client-Secret": config["bdtl_client_secret"],
+    }
+
+    # execute method for call api
+    response_class = request_retry_session(allowed_methods=False).post(
+        config["bdtl_api_url"],
+        headers=headers,
+        data=json.dumps(json_body, cls=JSONEncoder),
+        timeout=30,
+        verify=False,  # Valida el server contra el certificado del layer
+    )
+    return response_class
+
+
+def validate_api_response(response, response_data, logger, context):
+    """
+    Validates the API response and logs relevant information.
+
+    :param response: Response object from requests
+    :param response_data: Parsed JSON from the response
+    :param logger: Logger instance
+    :param context: String to identify the API context (e.g., 'BDTL')
+    :return: Tuple (is_valid: bool, message: str)
+    """
+    status_code = response.status_code
+    logger.info(f"{context} Full Response: {json.dumps(response_data)}")
+
+    store_metadata = response_data.get("data", {}).get("storeMetadata", {})
+    is_valid = (
+        200 <= status_code < 300
+        and isinstance(store_metadata, dict)
+        and bool(store_metadata.get("documentId"))
+    )
+
+    if is_valid:
+        msg = (
+            f"Status {context} api: {status_code} "
+            f"Document ID: {store_metadata['documentId']}"
+        )
+    else:
+        error_details = response_data.get("errors", [])
+        error_message = response_data.get("title", f"{context} response scheme changed")
+        if error_details:
+            error = error_details[0]
+            error_message = (
+                f"{error_message} - {error.get('code', 'UNKNOWN')}: "
+                f"{error.get('detail', '')}"
+            )
+        msg = (
+            f"Status {context} api: {response_data.get('status', status_code)} "
+            f"Status object response api: {status_code} "
+            f"Response object message: {error_message}"
+        )
+    return is_valid, msg
