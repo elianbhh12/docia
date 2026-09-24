@@ -1,0 +1,182 @@
+# Contexto: consumo del certificado SSL desde Lambda Layer — `insert_bdtl_lambda`
+
+## 1. Objetivo
+
+Hacer que la Lambda `insert_bdtl_lambda` valide la conexión HTTPS contra el **API BDTL** usando un certificado SSL que está publicado en una **Lambda Layer** (el `.zip` de la layer vive en S3).
+
+**Alcance:** solo el certificado. No se deben cambiar otras partes del código.
+
+## 2. Estado actual
+
+- ✅ En `src/utils/request_utils.py`, función `call_api`, ya está configurado:
+  ```python
+  verify=BDTL_CERT_PATH,
+  ```
+- ✅ La ruta del certificado ya está definida en el mismo archivo:
+  ```python
+  BDTL_CERT_PATH = os.getenv("BDTL_CERT_PATH", "/opt/certs/opv-apis-dev.apps.ambientesbc.lab.cer")
+  ```
+- ⏳ Pendiente: confirmar que la layer está asociada a la Lambda, que el archivo queda en esa ruta dentro de `/opt` y que el formato del certificado sirve para validar.
+
+## 3. Flujo del código (dónde se usa el certificado)
+
+```
+lambda_handler (lambda_function.py)
+  → insert_controller.main          (src/controllers/insert_controller.py)
+    → insertbdtlapi_model.main      (src/models/insertbdtlapi_model.py)
+      → request_utils.write_api     (src/utils/request_utils.py)
+        → call_api  → requests.post(..., verify=BDTL_CERT_PATH)  → API BDTL (HTTPS)
+```
+
+- `lambda_handler`: enruta entre health check e inserción.
+- `insert_controller`: lee variables de entorno y delega al modelo.
+- `insertbdtlapi_model`: descarga el mensaje de S3, llama a `write_api` y envía logs a EventBridge (`LogsLambda`).
+- `request_utils.call_api`: hace el POST al API BDTL. **Es el único punto donde se usa el certificado.**
+
+## 4. Cómo funciona el certificado en AWS
+
+```
+S3 (.zip)  →  Lambda Layer (versión N)  →  Lambda (/opt)  →  código (verify=)
+```
+
+1. **S3** solo almacena el `.zip` de la layer. La Lambda no lee de S3.
+2. **Publicar layer**: AWS copia el `.zip` desde S3 y crea una versión numerada (`...:layer:NOMBRE:N`).
+3. **Asociar layer a la Lambda**: la función usa una versión específica.
+4. **En ejecución**: AWS descomprime la layer en `/opt` (carpeta interna de la máquina Linux de la Lambda; no es accesible ni visible desde la consola).
+5. **El código** lee el certificado como un archivo normal en disco.
+
+Reglas clave:
+- La **estructura interna del zip** define la ruta final. Si el zip contiene `certs/archivo.cer`, queda en `/opt/certs/archivo.cer`.
+- **Actualizar el zip en S3 no actualiza la Lambda.** Hay que publicar una nueva versión de la layer y asociarla.
+- `/opt` es de solo lectura.
+- Si la ruta real difiere, **no cambiar el código**: definir la variable de entorno `BDTL_CERT_PATH` en la Lambda.
+
+## 5. Pasos pendientes
+
+### 5.1 Revisar la estructura del zip en S3
+```bash
+aws s3 cp s3://BUCKET/ruta/certificado.zip .
+unzip -l certificado.zip
+```
+Debe mostrar `certs/opv-apis-dev.apps.ambientesbc.lab.cer` para coincidir con la ruta por defecto.
+
+### 5.2 Verificar/publicar la layer
+- Consola: **Lambda → Layers**. Revisar si existe y cuál es la última versión.
+- Si hay que crearla o actualizarla: **Create layer / Create version → Upload a file from Amazon S3**.
+- CLI equivalente:
+  ```bash
+  aws lambda publish-layer-version --layer-name NOMBRE --content S3Bucket=BUCKET,S3Key=ruta/certificado.zip
+  ```
+
+### 5.3 Asociar la layer a la función
+- Si se despliega con template/pipeline (SAM, Terraform, Serverless, CDK), agregar el ARN en `Layers` de la función y desplegar por el pipeline. No configurar a mano en consola, porque el pipeline lo sobrescribe.
+- Si es por consola: función → pestaña **Code** → sección **Layers** → **Add a layer → Custom layers**.
+
+### 5.4 Confirmar el contenido de `/opt` (diagnóstico temporal)
+Agregar temporalmente al inicio de `lambda_handler`, ejecutar una vez y revisar CloudWatch; luego quitarlo:
+```python
+import os
+for root, dirs, files in os.walk("/opt"):
+    for f in files:
+        print(os.path.join(root, f))
+```
+
+### 5.5 Verificar el formato del certificado
+`requests` necesita formato **PEM** (texto que empieza con `-----BEGIN CERTIFICATE-----`).
+- Revisar: abrir el `.cer` con un editor de texto.
+- Si es binario (DER), convertir y publicar la versión PEM en la layer:
+  ```bash
+  openssl x509 -inform der -in archivo.cer -out archivo.pem
+  ```
+- Revisar si es CA o certificado del servidor:
+  ```bash
+  openssl x509 -in archivo.cer -noout -subject -issuer
+  ```
+  Si `subject` ≠ `issuer`, es el certificado del servidor y probablemente se necesita el de la **CA emisora** o la cadena completa.
+
+## 6. Pruebas locales (Windows / PowerShell)
+
+`/opt/certs/...` no existe en el PC local. Apuntar la variable a una copia local del certificado:
+```powershell
+$env:BDTL_CERT_PATH = "C:\ruta\local\opv-apis-dev.apps.ambientesbc.lab.cer"
+python lambda_function.py test\input\events\download 2>&1 | Tee-Object -FilePath errores.log
+```
+- La variable dura solo en esa pestaña de terminal.
+- `Tee-Object` guarda la salida en `errores.log` para no perder los errores.
+- En el PC corporativo el tráfico puede pasar por un **proxy que intercepta HTTPS**; puede fallar en local aunque en AWS funcione (ver 8.4, `self signed certificate in certificate chain`).
+
+## 7. Dónde ver errores
+
+- **Local:** la salida de la terminal o la ventana Run de PyCharm (se pierde al cerrar; usar `Tee-Object`).
+- **AWS:** Lambda → pestaña **Monitor** → **View CloudWatch logs** → log stream más reciente. Buscar `ERROR`, `Traceback`, `SSL` y, sobre todo, `Caused by` (ver 8.1).
+
+## 8. Diagnóstico de errores
+
+### 8.1 Cómo leer el error (importante)
+
+`call_api` usa `request_retry_session` con 3 reintentos. Por eso un error SSL **no aparece directo**. Llega envuelto así:
+
+```
+WriteApiException: Failed on [request_utils][write_api] Request BDTL Exception.
+Error Details: HTTPSConnectionPool(...): Max retries exceeded ... (Caused by SSLError(...))
+```
+
+- **El error real está después de `Caused by`.**
+- Tarda varios segundos en aparecer por la espera entre reintentos.
+- Si la Lambda termina con `Task timed out`, el error real puede no imprimirse: subir temporalmente el timeout de la Lambda.
+
+### 8.2 Flujo rápido
+
+1. Buscar en el log `Caused by` y leer lo que sigue.
+2. Clasificar:
+   - Menciona **ruta / `invalid path`** → el archivo no se encontró (8.3).
+   - Menciona **`SSL` / `certificate`** → el archivo no sirve (8.4).
+   - Menciona **timeout / resolve / 401 / 403** → no es el certificado (8.5).
+3. Aplicar la solución de la tabla correspondiente.
+
+### 8.3 El código no encuentra el archivo
+
+| Mensaje | Causa | Solución |
+|---|---|---|
+| `Could not find a suitable TLS CA certificate bundle, invalid path: /opt/certs/...` | La layer no está asociada a la Lambda | Asociar la layer (consola: Code → Layers, o `Layers` en el template) |
+| El mismo mensaje, con la layer asociada | El zip deja el archivo en otra ruta (`/opt/archivo.cer`, `/opt/carpeta/certs/archivo.cer`) | Listar `/opt` (5.4) y definir `BDTL_CERT_PATH` con la ruta real |
+| El mismo mensaje en local (ruta `/opt/...` o `C:\...`) | No se definió la variable en esa terminal o la ruta está mal escrita | `$env:BDTL_CERT_PATH = "C:\ruta\correcta\archivo.cer"` en la misma pestaña |
+| Funcionaba y dejó de funcionar tras un despliegue | El pipeline sobrescribió configuración hecha a mano en consola | Definir layer y variable **en el template**, no en la consola |
+
+### 8.4 El archivo existe pero no sirve
+
+| Mensaje | Causa | Solución |
+|---|---|---|
+| `NO_CERTIFICATE_OR_CRL_FOUND` / `PEM lib` | Certificado en formato binario (DER), no PEM | `openssl x509 -inform der -in archivo.cer -out archivo.pem` y publicar nueva versión de layer |
+| `unable to get local issuer certificate` | Es el certificado del servidor, no el de la CA, o falta un intermedio | Pedir al equipo del API BDTL el certificado de la **CA** o la **cadena completa** (raíz + intermedios en un solo PEM) |
+| `self signed certificate in certificate chain` (**en local**) | El proxy corporativo intercepta HTTPS | Pedir a TI el certificado raíz del proxy, combinarlo con el de BDTL en un solo PEM y apuntar `BDTL_CERT_PATH` a ese archivo. **Solo para local**, no subirlo a la layer |
+| `certificate has expired` | Venció el certificado de la layer o el del servidor | Layer: pedir el nuevo y publicar nueva versión. Servidor: lo resuelve el equipo del API |
+| `Hostname mismatch, certificate is not valid for '...'` | `bdtl_api_url` no corresponde al certificado (p. ej. URL de QA con certificado de dev) | Confirmar que URL y certificado son del mismo ambiente |
+| `handshake failure` / `certificate required` | El servidor exige **mTLS** (certificado de cliente) | Confirmar con el equipo del API. Requiere además `cert=(crt, key)` (cambio distinto) |
+
+### 8.5 Parece de certificado pero no lo es
+
+| Mensaje | Causa | Solución |
+|---|---|---|
+| `ConnectTimeout` / `Connection timed out` | La Lambda no tiene ruta de red al API interno (VPC, subredes, security groups) | Revisar con infraestructura la VPC y la salida al API |
+| `Failed to resolve` / `Name or service not known` | El DNS interno no resuelve el host desde la Lambda | Tema de VPC/DNS con infraestructura |
+| `401` / `403` en la respuesta | `Client-Id` / `Client-Secret` incorrectos o de otro ambiente | Revisar config del ambiente; el certificado ya funcionó si se llegó aquí |
+| Al desplegar: `AccessDenied` / `layer version does not exist` | Layer de otra cuenta sin permiso, en otra región o versión inexistente | La layer debe estar en la **misma región** (`us-east-1`); si es de otra cuenta, solicitar permiso de uso |
+| `Task timed out after X seconds` | Reintentos + espera superan el timeout; el error real no se imprime | Subir temporalmente el timeout para ver el error completo |
+
+### 8.6 Otros casos
+
+| Situación | Causa | Solución |
+|---|---|---|
+| Se actualizó el certificado en S3 y sigue fallando | La Lambda usa la versión vieja de la layer | Publicar nueva versión desde S3 y asociar **esa versión** |
+| Varias layers y el archivo no es el esperado | Dos layers traen un archivo en la misma ruta y una sobrescribe a la otra | Revisar el orden de las layers o usar rutas distintas |
+
+## 9. Consideraciones por ambiente
+
+El certificado actual es de **dev** (`...ambientesbc.lab`). Para QA/prod probablemente cambian el certificado o la ruta; se maneja con la variable de entorno `BDTL_CERT_PATH` por ambiente y la versión de layer correspondiente.
+
+---
+
+## 10. Prompt sugerido para la IA corporativa
+
+> Estoy trabajando en la Lambda `insert_bdtl_lambda` (Python). La llamada HTTPS al API BDTL está en `src/utils/request_utils.py`, función `call_api`, y ya usa `verify=BDTL_CERT_PATH`, donde `BDTL_CERT_PATH = os.getenv("BDTL_CERT_PATH", "/opt/certs/opv-apis-dev.apps.ambientesbc.lab.cer")`. El certificado está en una Lambda Layer cuyo `.zip` está en S3. Necesito, sin cambiar otras partes del código: (1) confirmar en el template/IaC del repo si la layer está asociada a la función y con qué versión, (2) verificar que la ruta en `/opt` coincida con `BDTL_CERT_PATH`, (3) validar que el certificado esté en formato PEM y sea el adecuado (CA vs servidor). Adjunto el documento de contexto. Guíame paso a paso.
