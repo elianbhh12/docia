@@ -1,0 +1,47 @@
+import os
+import boto3
+import datetime
+
+from src.models import insertbdtlapi_model
+from botocore.exceptions import ClientError, NoCredentialsError
+
+# Get Env variables
+BUSNAME = os.getenv("BUSNAME", "nu0242001-doc-ia-dev-EventBridge-EventBus")
+REGION = os.getenv("REGION", "us-east-1")
+DYNAMODB_CONTROL_TABLE = os.getenv(
+    "DYNAMODB_CONTROL_TABLE", "nu0242001-doc-ia-dev-Dynamo-control-table"
+)
+
+
+def main(log_buffer, logger, event, context):
+    """
+    Main controller of lambda.
+
+    Takes start timestamp, load ENV variables and pass all
+    with the event input to the main lambda
+    logic on insertbdtlapi_model.main
+
+    Obtains the response of the main logic and returns the final response
+    structure of the lambda.
+
+    Returns "SUCCESS" if writing in BDTL process is done.
+
+    :param config: Lambda configurations
+    :param logger: Logging to show messages
+    :param event: Dict with event data
+    :param context: Context of the lambda
+    :return: Dict with the response of the Lambda
+
+    """
+
+    # Logger information
+    logger.info(f"Starting processing event: {event}")
+    hora = datetime.datetime.now()
+    logger.info(f"start_timestamp: {hora}")
+
+    response = insertbdtlapi_model.main(
+        log_buffer, event, context, logger, BUSNAME, DYNAMODB_CONTROL_TABLE
+    )
+
+    logger.info(f"Finish processing event: {event},\n response {response}")
+    return response
