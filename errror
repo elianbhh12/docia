@@ -1,0 +1,181 @@
+2026-09-24T22:20:43.081Z
+INIT_START Runtime Version: python:3.12.mainlinev2.v43 Runtime Version ARN: arn:aws:lambda:us-east-1::runtime:36aeb19f3326e129d9f096dea0a3c6a9ca8dce2610e62d2b2060747602d863ae
+2026-09-24T22:20:43.680Z
+CERT=/opt/lambda_layer_bancolombia_certs.crt
+2026-09-24T22:20:43.680Z
+EXISTS=True
+2026-09-24T22:20:43.680Z
+OPT FILE: /opt/lambda_layer_bancolombia_certs.crt
+2026-09-24T22:20:43.685Z
+START RequestId: bb14c4e7-fc2f-496a-9d64-080e63fc3032 Version: $LATEST
+2026-09-24T22:20:43.687Z
+[INFO] 2026-09-24T22:20:43.687Z bb14c4e7-fc2f-496a-9d64-080e63fc3032 Starting processing event: {'version': '0', 'id': 'eca6d41f-fc7d-f7a6-2337-ba38dec72dff', 'detail-type': 'Object Created', 'source': 'aws.s3', 'account': '813024095984', 'time': '2026-09-24T22:20:41Z', 'region': 'us-east-1', 'resources': ['arn:aws:s3:::nu0242001-doc-ia-dev-reception-bucket'], 'detail': {'version': '0', 'event-version': '1.2', 'bucket': {'name': 'nu0242001-doc-ia-dev-reception-bucket', 'aws-generated-tags': {'aws:cloudformation:stack-id': 'arn:aws:cloudformation:us-east-1:813024095984:stack/nu0242001-doc-ia-dev-DestinationBucket/632a1770-604b-11ed-94ff-0aa75dee38eb', 'aws:cloudformation:logical-id': 'S3DestinationBucket', 'aws:cloudformation:stack-name': 'nu0242001-doc-ia-dev-DestinationBucket'}}, 'object': {'key': 'test/T1601472_CamaraComercio_AFDDOC0125261.json', 'size': 3366, 'etag': '949a50931be33725cfcbf73170961627', 'version-id': 'yotYgbPFGnqfBg4SjydvUu_hadGSd9lq', 'sequencer': '006AB5A239B7B698E1'}, 'request-id': '28JFNHFPT71J6CCD', 'requester': '813024095984', 'source-ip-address': '163.116.234.102', 'reason': 'PutObject'}}
+2026-09-24T22:20:43.687Z
+[INFO] 2026-09-24T22:20:43.687Z bb14c4e7-fc2f-496a-9d64-080e63fc3032 start_timestamp: 2026-09-24 22:20:43.687667
+2026-09-24T22:20:43.725Z
+[INFO] 2026-09-24T22:20:43.725Z bb14c4e7-fc2f-496a-9d64-080e63fc3032 Found credentials in environment variables.
+2026-09-24T22:20:44.409Z
+[INFO] 2026-09-24T22:20:44.409Z bb14c4e7-fc2f-496a-9d64-080e63fc3032 Information correctly retrieved
+2026-09-24T22:20:44.641Z
+[INFO] 2026-09-24T22:20:44.641Z bb14c4e7-fc2f-496a-9d64-080e63fc3032 Normalize option: True
+2026-09-24T22:20:44.642Z
+[INFO] 2026-09-24T22:20:44.642Z bb14c4e7-fc2f-496a-9d64-080e63fc3032 subtype: None
+2026-09-24T22:20:44.642Z
+[INFO] 2026-09-24T22:20:44.642Z bb14c4e7-fc2f-496a-9d64-080e63fc3032 Splitting massive part: 1
+2026-09-24T22:20:44.751Z
+[ERROR]	2026-09-24T22:20:44.751Z	bb14c4e7-fc2f-496a-9d64-080e63fc3032	Failed on [request_utils][write_api] Request BDTL Exception.
+        Error Details: HTTPSConnectionPool(host='opv-apis-dev.apps.ambientesbc.lab', port=443): Max retries exceeded with url: /private-bancolombia/opv-dev/v2/business-support/document-management/archive-services/document-data/management/document-data/store-metadata (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1010)')))
+
+[ERROR] 2026-09-24T22:20:44.751Z bb14c4e7-fc2f-496a-9d64-080e63fc3032 Failed on [request_utils][write_api] Request BDTL Exception. Error Details: HTTPSConnectionPool(host='opv-apis-dev.apps.ambientesbc.lab', port=443): Max retries exceeded with url: /private-bancolombia/opv-dev/v2/business-support/document-management/archive-services/document-data/management/document-data/store-metadata (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1010)')))
+2026-09-24T22:20:44.751Z
+[ERROR] 2026-09-24T22:20:44.751Z bb14c4e7-fc2f-496a-9d64-080e63fc3032 Se genero error [Write_api Exception] Failed on [request_utils][write_api] Request BDTL Exception. Error Details: HTTPSConnectionPool(host='opv-apis-dev.apps.ambientesbc.lab', port=443): Max retries exceeded with url: /private-bancolombia/opv-dev/v2/business-support/document-management/archive-services/document-data/management/document-data/store-metadata (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1010)'))) en la ejecucion
+2026-09-24T22:20:44.751Z
+[ERROR] 2026-09-24T22:20:44.751Z bb14c4e7-fc2f-496a-9d64-080e63fc3032 Message to send to LogsLambda: {'FileName': 'T1601472_CamaraComercio_AFDDOC0125261', 'LambdaName': 'InsertBdtlLambda', 'Logs': {'start_timestamp': '2026-09-24T17:20:43.687780Z', 'message': "Se genero error\n [Write_api Exception] Failed on [request_utils][write_api] Request BDTL Exception.\n Error Details: HTTPSConnectionPool(host='opv-apis-dev.apps.ambientesbc.lab', port=443): Max retries exceeded with url: /private-bancolombia/opv-dev/v2/business-support/document-management/archive-services/document-data/management/document-data/store-metadata (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1010)')))\n en la ejecucion", 'request_info': None, 'call_timestamp': None, 'response': None, 'response_timestamp': None, 'end_timestamp': '2026-09-24T17:20:44.411186Z'}}
+2026-09-24T22:20:44.881Z
+[INFO] 2026-09-24T22:20:44.880Z bb14c4e7-fc2f-496a-9d64-080e63fc3032 Logs send to be save in dynamo table, code: Event sent successfully: event id 422de3eb-1f85-5b39-b473-86a7371d13f7, status code 200
+2026-09-24T22:20:44.882Z
+[ERROR] WriteApiException: [Write_api Exception] Failed on [request_utils][write_api] Request BDTL Exception. Error Details: HTTPSConnectionPool(host='opv-apis-dev.apps.ambientesbc.lab', port=443): Max retries exceeded with url: /private-bancolombia/opv-dev/v2/business-support/document-management/archive-services/document-data/management/document-data/store-metadata (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1010)'))) Traceback (most recent call last):   File "/var/task/app.py", line 63, in lambda_handler     response = insert_controller.main(   File "/var/task/src/controllers/insert_controller.py", line 42, in main     response = insertbdtlapi_model.main(   File "/var/task/src/models/insertbdtlapi_model.py", line 158, in main     raise e   File "/var/task/src/models/insertbdtlapi_model.py", line 68, in main     ) = request_utils.write_api(   File "/var/task/src/utils/request_utils.py", line 234, in write_api     raise errors.WriteApiException(msg_exception)
+2026-09-24T22:20:44.885Z
+END RequestId: bb14c4e7-fc2f-496a-9d64-080e63fc3032
+2026-09-24T22:20:44.885Z
+REPORT RequestId: bb14c4e7-fc2f-496a-9d64-080e63fc3032 Duration: 1198.84 ms Billed Duration: 1800 ms Memory Size: 512 MB Max Memory Used: 111 MB Init Duration: 600.93 ms
+2026-09-24T22:21:22.047Z
+START RequestId: 74227037-1ebf-4c1f-8c3f-49025d31d422 Version: $LATEST
+2026-09-24T22:21:22.048Z
+[INFO] 2026-09-24T22:21:22.048Z 74227037-1ebf-4c1f-8c3f-49025d31d422 Starting processing event: {'version': '0', 'id': '9ec7afc7-7d72-476d-d410-8369a1a081dc', 'detail-type': 'Object Created', 'source': 'aws.s3', 'account': '813024095984', 'time': '2026-09-24T22:21:20Z', 'region': 'us-east-1', 'resources': ['arn:aws:s3:::nu0242001-doc-ia-dev-reception-bucket'], 'detail': {'version': '0', 'event-version': '1.2', 'bucket': {'name': 'nu0242001-doc-ia-dev-reception-bucket', 'aws-generated-tags': {'aws:cloudformation:stack-id': 'arn:aws:cloudformation:us-east-1:813024095984:stack/nu0242001-doc-ia-dev-DestinationBucket/632a1770-604b-11ed-94ff-0aa75dee38eb', 'aws:cloudformation:logical-id': 'S3DestinationBucket', 'aws:cloudformation:stack-name': 'nu0242001-doc-ia-dev-DestinationBucket'}}, 'object': {'key': 'test/T1601472_CamaraComercio_AFDDOC0125261.json', 'size': 3366, 'etag': '1f5e249ed037ebf55f441dca93fbbc9f', 'version-id': 'Xj9EBiwlNZL4V6V0oG3wk5bLbPLaHNYM', 'sequencer': '006AB5A260B479D013'}, 'request-id': 'X1FGF272BJX0C7F3', 'requester': '813024095984', 'source-ip-address': '163.116.234.102', 'reason': 'PutObject'}}
+2026-09-24T22:21:22.048Z
+[INFO] 2026-09-24T22:21:22.048Z 74227037-1ebf-4c1f-8c3f-49025d31d422 start_timestamp: 2026-09-24 22:21:22.048724
+2026-09-24T22:21:22.184Z
+[INFO] 2026-09-24T22:21:22.184Z 74227037-1ebf-4c1f-8c3f-49025d31d422 Information correctly retrieved
+2026-09-24T22:21:22.297Z
+[INFO] 2026-09-24T22:21:22.297Z 74227037-1ebf-4c1f-8c3f-49025d31d422 Normalize option: True
+2026-09-24T22:21:22.298Z
+[INFO] 2026-09-24T22:21:22.298Z 74227037-1ebf-4c1f-8c3f-49025d31d422 subtype: None
+2026-09-24T22:21:22.298Z
+[INFO] 2026-09-24T22:21:22.298Z 74227037-1ebf-4c1f-8c3f-49025d31d422 Splitting massive part: 1
+2026-09-24T22:21:22.382Z
+[ERROR] 2026-09-24T22:21:22.381Z 74227037-1ebf-4c1f-8c3f-49025d31d422 Failed on [request_utils][write_api] Request BDTL Exception. Error Details: HTTPSConnectionPool(host='opv-apis-dev.apps.ambientesbc.lab', port=443): Max retries exceeded with url: /private-bancolombia/opv-dev/v2/business-support/document-management/archive-services/document-data/management/document-data/store-metadata (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1010)')))
+2026-09-24T22:21:22.382Z
+[ERROR] 2026-09-24T22:21:22.382Z 74227037-1ebf-4c1f-8c3f-49025d31d422 Se genero error [Write_api Exception] Failed on [request_utils][write_api] Request BDTL Exception. Error Details: HTTPSConnectionPool(host='opv-apis-dev.apps.ambientesbc.lab', port=443): Max retries exceeded with url: /private-bancolombia/opv-dev/v2/business-support/document-management/archive-services/document-data/management/document-data/store-metadata (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1010)'))) en la ejecucion
+2026-09-24T22:21:22.382Z
+[ERROR] 2026-09-24T22:21:22.382Z 74227037-1ebf-4c1f-8c3f-49025d31d422 Message to send to LogsLambda: {'FileName': 'T1601472_CamaraComercio_AFDDOC0125261', 'LambdaName': 'InsertBdtlLambda', 'Logs': {'start_timestamp': '2026-09-24T17:21:22.048819Z', 'message': "Se genero error\n [Write_api Exception] Failed on [request_utils][write_api] Request BDTL Exception.\n Error Details: HTTPSConnectionPool(host='opv-apis-dev.apps.ambientesbc.lab', port=443): Max retries exceeded with url: /private-bancolombia/opv-dev/v2/business-support/document-management/archive-services/document-data/management/document-data/store-metadata (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1010)')))\n en la ejecucion", 'request_info': None, 'call_timestamp': None, 'response': None, 'response_timestamp': None, 'end_timestamp': '2026-09-24T17:21:22.185813Z'}}
+2026-09-24T22:21:22.470Z
+[INFO] 2026-09-24T22:21:22.470Z 74227037-1ebf-4c1f-8c3f-49025d31d422 Logs send to be save in dynamo table, code: Event sent successfully: event id da7084f7-905a-df9d-6692-14bcbe90a929, status code 200
+2026-09-24T22:21:22.470Z
+[ERROR] WriteApiException: [Write_api Exception] Failed on [request_utils][write_api] Request BDTL Exception. Error Details: HTTPSConnectionPool(host='opv-apis-dev.apps.ambientesbc.lab', port=443): Max retries exceeded with url: /private-bancolombia/opv-dev/v2/business-support/document-management/archive-services/document-data/management/document-data/store-metadata (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1010)'))) Traceback (most recent call last):   File "/var/task/app.py", line 63, in lambda_handler     response = insert_controller.main(   File "/var/task/src/controllers/insert_controller.py", line 42, in main     response = insertbdtlapi_model.main(   File "/var/task/src/models/insertbdtlapi_model.py", line 158, in main     raise e   File "/var/task/src/models/insertbdtlapi_model.py", line 68, in main     ) = request_utils.write_api(   File "/var/task/src/utils/request_utils.py", line 234, in write_api     raise errors.WriteApiException(msg_exception)
+2026-09-24T22:21:22.473Z
+END RequestId: 74227037-1ebf-4c1f-8c3f-49025d31d422
+2026-09-24T22:21:22.473Z
+REPORT RequestId: 74227037-1ebf-4c1f-8c3f-49025d31d422 Duration: 425.29 ms Billed Duration: 426 ms Memory Size: 512 MB Max Memory Used: 111 MB
+2026-09-24T22:21:48.041Z
+START RequestId: bb14c4e7-fc2f-496a-9d64-080e63fc3032 Version: $LATEST
+2026-09-24T22:21:48.042Z
+[INFO] 2026-09-24T22:21:48.042Z bb14c4e7-fc2f-496a-9d64-080e63fc3032 Starting processing event: {'version': '0', 'id': 'eca6d41f-fc7d-f7a6-2337-ba38dec72dff', 'detail-type': 'Object Created', 'source': 'aws.s3', 'account': '813024095984', 'time': '2026-09-24T22:20:41Z', 'region': 'us-east-1', 'resources': ['arn:aws:s3:::nu0242001-doc-ia-dev-reception-bucket'], 'detail': {'version': '0', 'event-version': '1.2', 'bucket': {'name': 'nu0242001-doc-ia-dev-reception-bucket', 'aws-generated-tags': {'aws:cloudformation:stack-id': 'arn:aws:cloudformation:us-east-1:813024095984:stack/nu0242001-doc-ia-dev-DestinationBucket/632a1770-604b-11ed-94ff-0aa75dee38eb', 'aws:cloudformation:logical-id': 'S3DestinationBucket', 'aws:cloudformation:stack-name': 'nu0242001-doc-ia-dev-DestinationBucket'}}, 'object': {'key': 'test/T1601472_CamaraComercio_AFDDOC0125261.json', 'size': 3366, 'etag': '949a50931be33725cfcbf73170961627', 'version-id': 'yotYgbPFGnqfBg4SjydvUu_hadGSd9lq', 'sequencer': '006AB5A239B7B698E1'}, 'request-id': '28JFNHFPT71J6CCD', 'requester': '813024095984', 'source-ip-address': '163.116.234.102', 'reason': 'PutObject'}}
+2026-09-24T22:21:48.042Z
+[INFO] 2026-09-24T22:21:48.042Z bb14c4e7-fc2f-496a-9d64-080e63fc3032 start_timestamp: 2026-09-24 22:21:48.042924
+2026-09-24T22:21:48.239Z
+[INFO] 2026-09-24T22:21:48.239Z bb14c4e7-fc2f-496a-9d64-080e63fc3032 Information correctly retrieved
+2026-09-24T22:21:48.381Z
+[INFO] 2026-09-24T22:21:48.381Z bb14c4e7-fc2f-496a-9d64-080e63fc3032 Normalize option: True
+2026-09-24T22:21:48.382Z
+[INFO] 2026-09-24T22:21:48.382Z bb14c4e7-fc2f-496a-9d64-080e63fc3032 subtype: None
+2026-09-24T22:21:48.382Z
+[INFO] 2026-09-24T22:21:48.382Z bb14c4e7-fc2f-496a-9d64-080e63fc3032 Splitting massive part: 1
+2026-09-24T22:21:48.482Z
+[ERROR] 2026-09-24T22:21:48.482Z bb14c4e7-fc2f-496a-9d64-080e63fc3032 Failed on [request_utils][write_api] Request BDTL Exception. Error Details: HTTPSConnectionPool(host='opv-apis-dev.apps.ambientesbc.lab', port=443): Max retries exceeded with url: /private-bancolombia/opv-dev/v2/business-support/document-management/archive-services/document-data/management/document-data/store-metadata (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1010)')))
+2026-09-24T22:21:48.482Z
+[ERROR] 2026-09-24T22:21:48.482Z bb14c4e7-fc2f-496a-9d64-080e63fc3032 Se genero error [Write_api Exception] Failed on [request_utils][write_api] Request BDTL Exception. Error Details: HTTPSConnectionPool(host='opv-apis-dev.apps.ambientesbc.lab', port=443): Max retries exceeded with url: /private-bancolombia/opv-dev/v2/business-support/document-management/archive-services/document-data/management/document-data/store-metadata (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1010)'))) en la ejecucion
+2026-09-24T22:21:48.482Z
+[ERROR] 2026-09-24T22:21:48.482Z bb14c4e7-fc2f-496a-9d64-080e63fc3032 Message to send to LogsLambda: {'FileName': 'T1601472_CamaraComercio_AFDDOC0125261', 'LambdaName': 'InsertBdtlLambda', 'Logs': {'start_timestamp': '2026-09-24T17:21:48.042991Z', 'message': "Se genero error\n [Write_api Exception] Failed on [request_utils][write_api] Request BDTL Exception.\n Error Details: HTTPSConnectionPool(host='opv-apis-dev.apps.ambientesbc.lab', port=443): Max retries exceeded with url: /private-bancolombia/opv-dev/v2/business-support/document-management/archive-services/document-data/management/document-data/store-metadata (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1010)')))\n en la ejecucion", 'request_info': None, 'call_timestamp': None, 'response': None, 'response_timestamp': None, 'end_timestamp': '2026-09-24T17:21:48.241620Z'}}
+2026-09-24T22:21:48.572Z
+[INFO] 2026-09-24T22:21:48.572Z bb14c4e7-fc2f-496a-9d64-080e63fc3032 Logs send to be save in dynamo table, code: Event sent successfully: event id 62092b49-3e01-bfd6-9e68-cf2d405180d2, status code 200
+2026-09-24T22:21:48.572Z
+[ERROR] WriteApiException: [Write_api Exception] Failed on [request_utils][write_api] Request BDTL Exception. Error Details: HTTPSConnectionPool(host='opv-apis-dev.apps.ambientesbc.lab', port=443): Max retries exceeded with url: /private-bancolombia/opv-dev/v2/business-support/document-management/archive-services/document-data/management/document-data/store-metadata (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1010)'))) Traceback (most recent call last):   File "/var/task/app.py", line 63, in lambda_handler     response = insert_controller.main(   File "/var/task/src/controllers/insert_controller.py", line 42, in main     response = insertbdtlapi_model.main(   File "/var/task/src/models/insertbdtlapi_model.py", line 158, in main     raise e   File "/var/task/src/models/insertbdtlapi_model.py", line 68, in main     ) = request_utils.write_api(   File "/var/task/src/utils/request_utils.py", line 234, in write_api     raise errors.WriteApiException(msg_exception)
+2026-09-24T22:21:48.574Z
+END RequestId: bb14c4e7-fc2f-496a-9d64-080e63fc3032
+2026-09-24T22:21:48.574Z
+REPORT RequestId: bb14c4e7-fc2f-496a-9d64-080e63fc3032 Duration: 533.31 ms Billed Duration: 534 ms Memory Size: 512 MB Max Memory Used: 111 MB
+2026-09-24T22:22:15.634Z
+START RequestId: 74227037-1ebf-4c1f-8c3f-49025d31d422 Version: $LATEST
+2026-09-24T22:22:15.635Z
+[INFO] 2026-09-24T22:22:15.635Z 74227037-1ebf-4c1f-8c3f-49025d31d422 Starting processing event: {'version': '0', 'id': '9ec7afc7-7d72-476d-d410-8369a1a081dc', 'detail-type': 'Object Created', 'source': 'aws.s3', 'account': '813024095984', 'time': '2026-09-24T22:21:20Z', 'region': 'us-east-1', 'resources': ['arn:aws:s3:::nu0242001-doc-ia-dev-reception-bucket'], 'detail': {'version': '0', 'event-version': '1.2', 'bucket': {'name': 'nu0242001-doc-ia-dev-reception-bucket', 'aws-generated-tags': {'aws:cloudformation:stack-id': 'arn:aws:cloudformation:us-east-1:813024095984:stack/nu0242001-doc-ia-dev-DestinationBucket/632a1770-604b-11ed-94ff-0aa75dee38eb', 'aws:cloudformation:logical-id': 'S3DestinationBucket', 'aws:cloudformation:stack-name': 'nu0242001-doc-ia-dev-DestinationBucket'}}, 'object': {'key': 'test/T1601472_CamaraComercio_AFDDOC0125261.json', 'size': 3366, 'etag': '1f5e249ed037ebf55f441dca93fbbc9f', 'version-id': 'Xj9EBiwlNZL4V6V0oG3wk5bLbPLaHNYM', 'sequencer': '006AB5A260B479D013'}, 'request-id': 'X1FGF272BJX0C7F3', 'requester': '813024095984', 'source-ip-address': '163.116.234.102', 'reason': 'PutObject'}}
+2026-09-24T22:22:15.635Z
+[INFO] 2026-09-24T22:22:15.635Z 74227037-1ebf-4c1f-8c3f-49025d31d422 start_timestamp: 2026-09-24 22:22:15.635392
+2026-09-24T22:22:15.790Z
+[INFO] 2026-09-24T22:22:15.790Z 74227037-1ebf-4c1f-8c3f-49025d31d422 Information correctly retrieved
+2026-09-24T22:22:15.894Z
+[INFO] 2026-09-24T22:22:15.894Z 74227037-1ebf-4c1f-8c3f-49025d31d422 Normalize option: True
+2026-09-24T22:22:15.895Z
+[INFO] 2026-09-24T22:22:15.895Z 74227037-1ebf-4c1f-8c3f-49025d31d422 subtype: None
+2026-09-24T22:22:15.895Z
+[INFO] 2026-09-24T22:22:15.895Z 74227037-1ebf-4c1f-8c3f-49025d31d422 Splitting massive part: 1
+2026-09-24T22:22:15.982Z
+[ERROR] 2026-09-24T22:22:15.982Z 74227037-1ebf-4c1f-8c3f-49025d31d422 Failed on [request_utils][write_api] Request BDTL Exception. Error Details: HTTPSConnectionPool(host='opv-apis-dev.apps.ambientesbc.lab', port=443): Max retries exceeded with url: /private-bancolombia/opv-dev/v2/business-support/document-management/archive-services/document-data/management/document-data/store-metadata (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1010)')))
+2026-09-24T22:22:15.982Z
+[ERROR] 2026-09-24T22:22:15.982Z 74227037-1ebf-4c1f-8c3f-49025d31d422 Se genero error [Write_api Exception] Failed on [request_utils][write_api] Request BDTL Exception. Error Details: HTTPSConnectionPool(host='opv-apis-dev.apps.ambientesbc.lab', port=443): Max retries exceeded with url: /private-bancolombia/opv-dev/v2/business-support/document-management/archive-services/document-data/management/document-data/store-metadata (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1010)'))) en la ejecucion
+2026-09-24T22:22:15.982Z
+[ERROR] 2026-09-24T22:22:15.982Z 74227037-1ebf-4c1f-8c3f-49025d31d422 Message to send to LogsLambda: {'FileName': 'T1601472_CamaraComercio_AFDDOC0125261', 'LambdaName': 'InsertBdtlLambda', 'Logs': {'start_timestamp': '2026-09-24T17:22:15.635477Z', 'message': "Se genero error\n [Write_api Exception] Failed on [request_utils][write_api] Request BDTL Exception.\n Error Details: HTTPSConnectionPool(host='opv-apis-dev.apps.ambientesbc.lab', port=443): Max retries exceeded with url: /private-bancolombia/opv-dev/v2/business-support/document-management/archive-services/document-data/management/document-data/store-metadata (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1010)')))\n en la ejecucion", 'request_info': None, 'call_timestamp': None, 'response': None, 'response_timestamp': None, 'end_timestamp': '2026-09-24T17:22:15.792529Z'}}
+2026-09-24T22:22:16.088Z
+[INFO] 2026-09-24T22:22:16.088Z 74227037-1ebf-4c1f-8c3f-49025d31d422 Logs send to be save in dynamo table, code: Event sent successfully: event id ab33c76a-6dde-2a6f-ce6f-5c89bd0ad01c, status code 200
+2026-09-24T22:22:16.089Z
+[ERROR] WriteApiException: [Write_api Exception] Failed on [request_utils][write_api] Request BDTL Exception. Error Details: HTTPSConnectionPool(host='opv-apis-dev.apps.ambientesbc.lab', port=443): Max retries exceeded with url: /private-bancolombia/opv-dev/v2/business-support/document-management/archive-services/document-data/management/document-data/store-metadata (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1010)'))) Traceback (most recent call last):   File "/var/task/app.py", line 63, in lambda_handler     response = insert_controller.main(   File "/var/task/src/controllers/insert_controller.py", line 42, in main     response = insertbdtlapi_model.main(   File "/var/task/src/models/insertbdtlapi_model.py", line 158, in main     raise e   File "/var/task/src/models/insertbdtlapi_model.py", line 68, in main     ) = request_utils.write_api(   File "/var/task/src/utils/request_utils.py", line 234, in write_api     raise errors.WriteApiException(msg_exception)
+2026-09-24T22:22:16.091Z
+END RequestId: 74227037-1ebf-4c1f-8c3f-49025d31d422
+2026-09-24T22:22:16.091Z
+REPORT RequestId: 74227037-1ebf-4c1f-8c3f-49025d31d422 Duration: 456.12 ms Billed Duration: 457 ms Memory Size: 512 MB Max Memory Used: 112 MB
+2026-09-24T22:23:42.726Z
+START RequestId: bb14c4e7-fc2f-496a-9d64-080e63fc3032 Version: $LATEST
+2026-09-24T22:23:42.727Z
+[INFO] 2026-09-24T22:23:42.727Z bb14c4e7-fc2f-496a-9d64-080e63fc3032 Starting processing event: {'version': '0', 'id': 'eca6d41f-fc7d-f7a6-2337-ba38dec72dff', 'detail-type': 'Object Created', 'source': 'aws.s3', 'account': '813024095984', 'time': '2026-09-24T22:20:41Z', 'region': 'us-east-1', 'resources': ['arn:aws:s3:::nu0242001-doc-ia-dev-reception-bucket'], 'detail': {'version': '0', 'event-version': '1.2', 'bucket': {'name': 'nu0242001-doc-ia-dev-reception-bucket', 'aws-generated-tags': {'aws:cloudformation:stack-id': 'arn:aws:cloudformation:us-east-1:813024095984:stack/nu0242001-doc-ia-dev-DestinationBucket/632a1770-604b-11ed-94ff-0aa75dee38eb', 'aws:cloudformation:logical-id': 'S3DestinationBucket', 'aws:cloudformation:stack-name': 'nu0242001-doc-ia-dev-DestinationBucket'}}, 'object': {'key': 'test/T1601472_CamaraComercio_AFDDOC0125261.json', 'size': 3366, 'etag': '949a50931be33725cfcbf73170961627', 'version-id': 'yotYgbPFGnqfBg4SjydvUu_hadGSd9lq', 'sequencer': '006AB5A239B7B698E1'}, 'request-id': '28JFNHFPT71J6CCD', 'requester': '813024095984', 'source-ip-address': '163.116.234.102', 'reason': 'PutObject'}}
+2026-09-24T22:23:42.728Z
+[INFO] 2026-09-24T22:23:42.728Z bb14c4e7-fc2f-496a-9d64-080e63fc3032 start_timestamp: 2026-09-24 22:23:42.728008
+2026-09-24T22:23:43.043Z
+[INFO] 2026-09-24T22:23:43.043Z bb14c4e7-fc2f-496a-9d64-080e63fc3032 Information correctly retrieved
+2026-09-24T22:23:43.159Z
+[INFO] 2026-09-24T22:23:43.159Z bb14c4e7-fc2f-496a-9d64-080e63fc3032 Normalize option: True
+2026-09-24T22:23:43.160Z
+[INFO] 2026-09-24T22:23:43.160Z bb14c4e7-fc2f-496a-9d64-080e63fc3032 subtype: None
+2026-09-24T22:23:43.160Z
+[INFO] 2026-09-24T22:23:43.160Z bb14c4e7-fc2f-496a-9d64-080e63fc3032 Splitting massive part: 1
+2026-09-24T22:23:43.261Z
+[ERROR] 2026-09-24T22:23:43.261Z bb14c4e7-fc2f-496a-9d64-080e63fc3032 Failed on [request_utils][write_api] Request BDTL Exception. Error Details: HTTPSConnectionPool(host='opv-apis-dev.apps.ambientesbc.lab', port=443): Max retries exceeded with url: /private-bancolombia/opv-dev/v2/business-support/document-management/archive-services/document-data/management/document-data/store-metadata (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1010)')))
+2026-09-24T22:23:43.261Z
+[ERROR] 2026-09-24T22:23:43.261Z bb14c4e7-fc2f-496a-9d64-080e63fc3032 Se genero error [Write_api Exception] Failed on [request_utils][write_api] Request BDTL Exception. Error Details: HTTPSConnectionPool(host='opv-apis-dev.apps.ambientesbc.lab', port=443): Max retries exceeded with url: /private-bancolombia/opv-dev/v2/business-support/document-management/archive-services/document-data/management/document-data/store-metadata (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1010)'))) en la ejecucion
+2026-09-24T22:23:43.261Z
+[ERROR] 2026-09-24T22:23:43.261Z bb14c4e7-fc2f-496a-9d64-080e63fc3032 Message to send to LogsLambda: {'FileName': 'T1601472_CamaraComercio_AFDDOC0125261', 'LambdaName': 'InsertBdtlLambda', 'Logs': {'start_timestamp': '2026-09-24T17:23:42.728101Z', 'message': "Se genero error\n [Write_api Exception] Failed on [request_utils][write_api] Request BDTL Exception.\n Error Details: HTTPSConnectionPool(host='opv-apis-dev.apps.ambientesbc.lab', port=443): Max retries exceeded with url: /private-bancolombia/opv-dev/v2/business-support/document-management/archive-services/document-data/management/document-data/store-metadata (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1010)')))\n en la ejecucion", 'request_info': None, 'call_timestamp': None, 'response': None, 'response_timestamp': None, 'end_timestamp': '2026-09-24T17:23:43.045726Z'}}
+2026-09-24T22:23:43.341Z
+[INFO] 2026-09-24T22:23:43.341Z bb14c4e7-fc2f-496a-9d64-080e63fc3032 Logs send to be save in dynamo table, code: Event sent successfully: event id 455b55c9-ed52-365a-f829-8573d8c47460, status code 200
+2026-09-24T22:23:43.342Z
+[ERROR] WriteApiException: [Write_api Exception] Failed on [request_utils][write_api] Request BDTL Exception. Error Details: HTTPSConnectionPool(host='opv-apis-dev.apps.ambientesbc.lab', port=443): Max retries exceeded with url: /private-bancolombia/opv-dev/v2/business-support/document-management/archive-services/document-data/management/document-data/store-metadata (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1010)'))) Traceback (most recent call last):   File "/var/task/app.py", line 63, in lambda_handler     response = insert_controller.main(   File "/var/task/src/controllers/insert_controller.py", line 42, in main     response = insertbdtlapi_model.main(   File "/var/task/src/models/insertbdtlapi_model.py", line 158, in main     raise e   File "/var/task/src/models/insertbdtlapi_model.py", line 68, in main     ) = request_utils.write_api(   File "/var/task/src/utils/request_utils.py", line 234, in write_api     raise errors.WriteApiException(msg_exception)
+2026-09-24T22:23:43.344Z
+END RequestId: bb14c4e7-fc2f-496a-9d64-080e63fc3032
+2026-09-24T22:23:43.344Z
+REPORT RequestId: bb14c4e7-fc2f-496a-9d64-080e63fc3032 Duration: 618.00 ms Billed Duration: 618 ms Memory Size: 512 MB Max Memory Used: 112 MB
+2026-09-24T22:24:20.249Z
+START RequestId: 74227037-1ebf-4c1f-8c3f-49025d31d422 Version: $LATEST
+2026-09-24T22:24:20.249Z
+[INFO] 2026-09-24T22:24:20.249Z 74227037-1ebf-4c1f-8c3f-49025d31d422 Starting processing event: {'version': '0', 'id': '9ec7afc7-7d72-476d-d410-8369a1a081dc', 'detail-type': 'Object Created', 'source': 'aws.s3', 'account': '813024095984', 'time': '2026-09-24T22:21:20Z', 'region': 'us-east-1', 'resources': ['arn:aws:s3:::nu0242001-doc-ia-dev-reception-bucket'], 'detail': {'version': '0', 'event-version': '1.2', 'bucket': {'name': 'nu0242001-doc-ia-dev-reception-bucket', 'aws-generated-tags': {'aws:cloudformation:stack-id': 'arn:aws:cloudformation:us-east-1:813024095984:stack/nu0242001-doc-ia-dev-DestinationBucket/632a1770-604b-11ed-94ff-0aa75dee38eb', 'aws:cloudformation:logical-id': 'S3DestinationBucket', 'aws:cloudformation:stack-name': 'nu0242001-doc-ia-dev-DestinationBucket'}}, 'object': {'key': 'test/T1601472_CamaraComercio_AFDDOC0125261.json', 'size': 3366, 'etag': '1f5e249ed037ebf55f441dca93fbbc9f', 'version-id': 'Xj9EBiwlNZL4V6V0oG3wk5bLbPLaHNYM', 'sequencer': '006AB5A260B479D013'}, 'request-id': 'X1FGF272BJX0C7F3', 'requester': '813024095984', 'source-ip-address': '163.116.234.102', 'reason': 'PutObject'}}
+2026-09-24T22:24:20.250Z
+[INFO] 2026-09-24T22:24:20.250Z 74227037-1ebf-4c1f-8c3f-49025d31d422 start_timestamp: 2026-09-24 22:24:20.250058
+2026-09-24T22:24:20.389Z
+[INFO] 2026-09-24T22:24:20.389Z 74227037-1ebf-4c1f-8c3f-49025d31d422 Information correctly retrieved
+2026-09-24T22:24:20.491Z
+[INFO] 2026-09-24T22:24:20.491Z 74227037-1ebf-4c1f-8c3f-49025d31d422 Normalize option: True
+2026-09-24T22:24:20.492Z
+[INFO] 2026-09-24T22:24:20.492Z 74227037-1ebf-4c1f-8c3f-49025d31d422 subtype: None
+2026-09-24T22:24:20.492Z
+[INFO] 2026-09-24T22:24:20.492Z 74227037-1ebf-4c1f-8c3f-49025d31d422 Splitting massive part: 1
+2026-09-24T22:24:20.582Z
+[ERROR] 2026-09-24T22:24:20.582Z 74227037-1ebf-4c1f-8c3f-49025d31d422 Failed on [request_utils][write_api] Request BDTL Exception. Error Details: HTTPSConnectionPool(host='opv-apis-dev.apps.ambientesbc.lab', port=443): Max retries exceeded with url: /private-bancolombia/opv-dev/v2/business-support/document-management/archive-services/document-data/management/document-data/store-metadata (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1010)')))
+2026-09-24T22:24:20.582Z
+[ERROR] 2026-09-24T22:24:20.582Z 74227037-1ebf-4c1f-8c3f-49025d31d422 Se genero error [Write_api Exception] Failed on [request_utils][write_api] Request BDTL Exception. Error Details: HTTPSConnectionPool(host='opv-apis-dev.apps.ambientesbc.lab', port=443): Max retries exceeded with url: /private-bancolombia/opv-dev/v2/business-support/document-management/archive-services/document-data/management/document-data/store-metadata (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1010)'))) en la ejecucion
+2026-09-24T22:24:20.582Z
+[ERROR] 2026-09-24T22:24:20.582Z 74227037-1ebf-4c1f-8c3f-49025d31d422 Message to send to LogsLambda: {'FileName': 'T1601472_CamaraComercio_AFDDOC0125261', 'LambdaName': 'InsertBdtlLambda', 'Logs': {'start_timestamp': '2026-09-24T17:24:20.250163Z', 'message': "Se genero error\n [Write_api Exception] Failed on [request_utils][write_api] Request BDTL Exception.\n Error Details: HTTPSConnectionPool(host='opv-apis-dev.apps.ambientesbc.lab', port=443): Max retries exceeded with url: /private-bancolombia/opv-dev/v2/business-support/document-management/archive-services/document-data/management/document-data/store-metadata (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1010)')))\n en la ejecucion", 'request_info': None, 'call_timestamp': None, 'response': None, 'response_timestamp': None, 'end_timestamp': '2026-09-24T17:24:20.391552Z'}}
+2026-09-24T22:24:20.677Z
+[INFO] 2026-09-24T22:24:20.677Z 74227037-1ebf-4c1f-8c3f-49025d31d422 Logs send to be save in dynamo table, code: Event sent successfully: event id 51b5b0a0-7cfd-abbf-34c4-5547aee29b85, status code 200
+2026-09-24T22:24:20.678Z
+[ERROR] WriteApiException: [Write_api Exception] Failed on [request_utils][write_api] Request BDTL Exception. Error Details: HTTPSConnectionPool(host='opv-apis-dev.apps.ambientesbc.lab', port=443): Max retries exceeded with url: /private-bancolombia/opv-dev/v2/business-support/document-management/archive-services/document-data/management/document-data/store-metadata (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1010)'))) Traceback (most recent call last):   File "/var/task/app.py", line 63, in lambda_handler     response = insert_controller.main(   File "/var/task/src/controllers/insert_controller.py", line 42, in main     response = insertbdtlapi_model.main(   File "/var/task/src/models/insertbdtlapi_model.py", line 158, in main     raise e   File "/var/task/src/models/insertbdtlapi_model.py", line 68, in main     ) = request_utils.write_api(   File "/var/task/src/utils/request_utils.py", line 234, in write_api     raise errors.WriteApiException(msg_exception)
+2026-09-24T22:24:20.682Z
+END RequestId: 74227037-1ebf-4c1f-8c3f-49025d31d422
+2026-09-24T22:24:20.682Z
+REPORT RequestId: 74227037-1ebf-4c1f-8c3f-49025d31d422 Duration: 431.75 ms Billed Duration: 432 ms Memory Size: 512 MB Max Memory Used: 112 MB
